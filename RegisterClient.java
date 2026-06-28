@@ -86,6 +86,10 @@ public class RegisterClient {
             String height = heightField.getText();
             String weight = weightField.getText();
 
+            nameField.setText("");
+            heightField.setText("");
+            weightField.setText("");
+
             // 未入力チェック
             if (nickname.isEmpty() ||
                 height.isEmpty() ||
