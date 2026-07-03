@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.URI;
 
 public class RegisterClient {
 
@@ -175,6 +176,39 @@ public class RegisterClient {
                         frame,
                         "登録が完了しました。"
                 );
+
+String[] options = {
+        "近くのジムを探す",
+        "近くの飲食チェーン店を探す"
+};
+
+int result = JOptionPane.showOptionDialog(
+        frame,
+        "表示する場所を選択してください。",
+        "周辺検索",
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.INFORMATION_MESSAGE,
+        null,
+        options,
+        options[0]
+);
+
+if (result == 0) {
+    // 現在地付近のジム
+    Desktop.getDesktop().browse(
+        new URI(
+                "https://www.google.com/maps/search/?api=1&query=Anytime+Fitness"
+        )
+);
+}
+else if (result == 1) {
+    // 現在地付近の飲食チェーン店
+    Desktop.getDesktop().browse(
+            new URI(
+                    "https://www.google.com/maps/search/?api=1&query=飲食チェーン店"
+            )
+    );
+}
 
             } catch (Exception ex) {
 
