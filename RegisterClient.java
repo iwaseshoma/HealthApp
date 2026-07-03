@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.URI;
+import javax.swing.border.LineBorder;
 
 public class RegisterClient {
 
@@ -29,9 +29,21 @@ public class RegisterClient {
         frame.getContentPane().setBackground(backgroundColor);
 
         // フォント設定
+        Font appTitleFont = new Font("HGS創英角ポップ体", Font.BOLD, 50);
         Font titleFont = new Font("HGS創英角ポップ体", Font.BOLD, 70);
         Font labelFont = new Font("HGS創英角ポップ体", Font.PLAIN, 30);
         Font fieldFont = new Font("HGS創英角ポップ体", Font.PLAIN, 28);
+
+        // アプリ名
+        JLabel appTitleLabel = new JLabel("健康管理アプリ");
+        appTitleLabel.setFont(appTitleFont);
+        appTitleLabel.setForeground(buttonColor);
+        appTitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        appTitleLabel.setBackground(backgroundColor);
+        appTitleLabel.setOpaque(true);
+        appTitleLabel.setBorder(
+                BorderFactory.createEmptyBorder(80, 0, 20, 0) // 「健康管理アプリ」の文字の高さ調整
+        );
 
         // 中央に配置するパネル
         JPanel centerPanel = new JPanel();
@@ -54,6 +66,13 @@ public class RegisterClient {
         nameLabel.setOpaque(true);
 
         JTextField nameField = new JTextField();
+        nameField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                        new Color(180, 220, 180),
+                        2,
+                        true),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)));
+
         nameField.setFont(fieldFont);
         nameField.setMaximumSize(new Dimension(500, 50));
         nameField.setBackground(Color.WHITE);
@@ -70,6 +89,14 @@ public class RegisterClient {
         heightField.setMaximumSize(new Dimension(500, 50));
         heightField.setBackground(Color.WHITE);
 
+        heightField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                        new Color(180, 220, 180),
+                        2,
+                        true),
+                BorderFactory.createEmptyBorder(
+                        10, 15, 10, 15)));
+
         // 体重
         JLabel weightLabel = new JLabel("体重(kg)");
         weightLabel.setFont(labelFont);
@@ -82,8 +109,71 @@ public class RegisterClient {
         weightField.setMaximumSize(new Dimension(500, 50));
         weightField.setBackground(Color.WHITE);
 
+        weightField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                        new Color(180, 220, 180),
+                        2,
+                        true),
+                BorderFactory.createEmptyBorder(
+                        10, 15, 10, 15)));
+
         // 登録ボタン
-        JButton registerButton = new JButton("登録");
+        JButton registerButton = new JButton("登録") {
+
+            @Override
+            protected void paintComponent(Graphics g) {
+
+                Graphics2D g2 = (Graphics2D) g.create();
+
+                g2.setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 影
+                g2.setColor(new Color(0, 0, 0, 30));
+
+                g2.fillRoundRect(
+                        10,
+                        10,
+                        getWidth() - 1,
+                        getHeight() - 1,
+                        40,
+                        40);
+                g2.setColor(getBackground());
+
+                g2.fillRoundRect(
+                        0,
+                        0,
+                        getWidth(),
+                        getHeight(),
+                        40,
+                        40);
+
+                super.paintComponent(g2);
+                g2.dispose();
+            }
+
+            @Override
+            protected void paintBorder(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+
+                g2.setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(getBackground());
+
+                g2.drawRoundRect(
+                        0,
+                        0,
+                        getWidth() - 1,
+                        getHeight() - 1,
+                        40,
+                        40);
+
+                g2.dispose();
+            }
+        };
         registerButton.setFont(labelFont);
         registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.setBackground(buttonColor);
@@ -119,16 +209,29 @@ public class RegisterClient {
         JPanel cardPanel = new JPanel(new BorderLayout());
         cardPanel.setBackground(cardColor);
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(buttonColor, 4),
+                new LineBorder(buttonColor, 4, true),
                 BorderFactory.createEmptyBorder(30, 30, 30, 30)));
         cardPanel.add(centerPanel, BorderLayout.CENTER);
 
-        // 画面中央に配置
+        // フォームを少し下げるためのパネル
         JPanel wrapper = new JPanel(new GridBagLayout());
         wrapper.setBackground(backgroundColor);
-        wrapper.add(cardPanel);
 
-        frame.add(wrapper);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(00, 0, 0, 0); // 枠の高さ調整
+
+        wrapper.add(cardPanel, gbc);
+
+        // メインパネル
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(backgroundColor);
+
+        mainPanel.add(appTitleLabel, BorderLayout.NORTH);
+        mainPanel.add(wrapper, BorderLayout.CENTER);
+
+        frame.add(mainPanel);
 
         // 登録ボタン押下時
         registerButton.addActionListener(e -> {
@@ -188,13 +291,13 @@ public class RegisterClient {
                         options,
                         options[0]);
 
-                if (result == 0) {
-                    // エニタイムフィットネス検索画面へ
-                    PlacesFetcher.main(new String[] { "gym" });
-                } else if (result == 1) {
-                    // 飲食チェーン店検索画面へ
-                    PlacesFetcher.main(new String[] { "restaurant" });
-                }
+                /*
+                 * if (result == 0) {
+                 * PlacesFetcher.main(new String[]{"gym"});
+                 * } else if (result == 1) {
+                 * PlacesFetcher.main(new String[]{"restaurant"});
+                 * }
+                 */
 
             } catch (Exception ex) {
 
