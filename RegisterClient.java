@@ -13,8 +13,17 @@ public class RegisterClient {
 
         // ウィンドウ作成
         JFrame frame = new JFrame("初回登録");
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // 画面サイズ取得
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        // 横幅を画面の半分、高さは全体
+        frame.setSize(screenSize.width / 2, screenSize.height);
+
+        // 画面中央に配置
+        frame.setLocationRelativeTo(null);
+
         frame.getContentPane().setBackground(backgroundColor);
 
         // フォント設定
@@ -122,10 +131,10 @@ public class RegisterClient {
                 // TCP接続
                 Socket socket = new Socket("localhost", 5000);
 
-                PrintWriter writer =
-                        new PrintWriter(
-                                socket.getOutputStream(),
-                                true);
+                PrintWriter writer = new PrintWriter(
+                        socket.getOutputStream(),
+                        true
+                );
 
                 // サーバへ送信
                 writer.println(nickname);
