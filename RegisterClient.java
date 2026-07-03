@@ -194,20 +194,12 @@ int result = JOptionPane.showOptionDialog(
 );
 
 if (result == 0) {
-    // 現在地付近のジム
-    Desktop.getDesktop().browse(
-        new URI(
-                "https://www.google.com/maps/search/?api=1&query=Anytime+Fitness"
-        )
-);
+    // エニタイムフィットネス検索画面へ
+    PlacesFetcher.main(new String[]{"gym"});
 }
 else if (result == 1) {
-    // 現在地付近の飲食チェーン店
-    Desktop.getDesktop().browse(
-            new URI(
-                    "https://www.google.com/maps/search/?api=1&query=飲食チェーン店"
-            )
-    );
+    // 飲食チェーン店検索画面へ
+    PlacesFetcher.main(new String[]{"restaurant"});
 }
 
             } catch (Exception ex) {
