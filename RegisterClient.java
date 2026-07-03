@@ -10,8 +10,8 @@ public class RegisterClient {
 
         // 色設定
         Color backgroundColor = new Color(220, 255, 220); // 外側の背景（薄い黄緑）
-        Color cardColor = new Color(245, 255, 245);       // 枠の中（さらに薄い黄緑）
-        Color buttonColor = new Color(34, 139, 34);       // 濃い緑
+        Color cardColor = new Color(245, 255, 245); // 枠の中（さらに薄い黄緑）
+        Color buttonColor = new Color(34, 139, 34); // 濃い緑
 
         // ウィンドウ作成
         JFrame frame = new JFrame("初回登録");
@@ -120,8 +120,7 @@ public class RegisterClient {
         cardPanel.setBackground(cardColor);
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(buttonColor, 4),
-                BorderFactory.createEmptyBorder(30, 30, 30, 30)
-        ));
+                BorderFactory.createEmptyBorder(30, 30, 30, 30)));
         cardPanel.add(centerPanel, BorderLayout.CENTER);
 
         // 画面中央に配置
@@ -145,8 +144,7 @@ public class RegisterClient {
 
                 JOptionPane.showMessageDialog(
                         frame,
-                        "すべて入力してください。"
-                );
+                        "すべて入力してください。");
                 return;
             }
 
@@ -156,8 +154,7 @@ public class RegisterClient {
 
                 PrintWriter writer = new PrintWriter(
                         socket.getOutputStream(),
-                        true
-                );
+                        true);
 
                 // サーバへ送信
                 writer.println(nickname);
@@ -174,40 +171,36 @@ public class RegisterClient {
 
                 JOptionPane.showMessageDialog(
                         frame,
-                        "登録が完了しました。"
-                );
+                        "登録が完了しました。");
 
-String[] options = {
-        "近くのジムを探す",
-        "近くの飲食チェーン店を探す"
-};
+                String[] options = {
+                        "近くのジムを探す",
+                        "近くの飲食チェーン店を探す"
+                };
 
-int result = JOptionPane.showOptionDialog(
-        frame,
-        "表示する場所を選択してください。",
-        "周辺検索",
-        JOptionPane.DEFAULT_OPTION,
-        JOptionPane.INFORMATION_MESSAGE,
-        null,
-        options,
-        options[0]
-);
+                int result = JOptionPane.showOptionDialog(
+                        frame,
+                        "表示する場所を選択してください。",
+                        "周辺検索",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        options,
+                        options[0]);
 
-if (result == 0) {
-    // エニタイムフィットネス検索画面へ
-    PlacesFetcher.main(new String[]{"gym"});
-}
-else if (result == 1) {
-    // 飲食チェーン店検索画面へ
-    PlacesFetcher.main(new String[]{"restaurant"});
-}
+                if (result == 0) {
+                    // エニタイムフィットネス検索画面へ
+                    PlacesFetcher.main(new String[] { "gym" });
+                } else if (result == 1) {
+                    // 飲食チェーン店検索画面へ
+                    PlacesFetcher.main(new String[] { "restaurant" });
+                }
 
             } catch (Exception ex) {
 
                 JOptionPane.showMessageDialog(
                         frame,
-                        "サーバに接続できません。"
-                );
+                        "サーバに接続できません。");
 
                 ex.printStackTrace();
             }
