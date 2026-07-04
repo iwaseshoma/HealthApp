@@ -9,8 +9,8 @@ public class RegisterClient {
     public static void main(String[] args) {
 
         // 色設定
-        Color backgroundColor = new Color(220, 255, 220); // 外側の背景（薄い黄緑）
-        Color cardColor = new Color(245, 255, 245); // 枠の中（さらに薄い黄緑）
+        Color backgroundColor = new Color(220, 255, 220); // 外側の背景
+        Color cardColor = new Color(245, 255, 245); // 枠の中
         Color buttonColor = new Color(34, 139, 34); // 濃い緑
 
         // ウィンドウ作成
@@ -29,8 +29,8 @@ public class RegisterClient {
         frame.getContentPane().setBackground(backgroundColor);
 
         // フォント設定
-        Font appTitleFont = new Font("HGS創英角ポップ体", Font.BOLD, 50);
-        Font titleFont = new Font("HGS創英角ポップ体", Font.BOLD, 70);
+        Font appTitleFont = new Font("HGS創英角ポップ体", Font.BOLD, 60);
+        Font titleFont = new Font("HGS創英角ポップ体", Font.BOLD, 50);
         Font labelFont = new Font("HGS創英角ポップ体", Font.PLAIN, 30);
         Font fieldFont = new Font("HGS創英角ポップ体", Font.PLAIN, 28);
 
@@ -45,77 +45,65 @@ public class RegisterClient {
                 BorderFactory.createEmptyBorder(80, 0, 20, 0) // 「健康管理アプリ」の文字の高さ調整
         );
 
-        // 中央に配置するパネル
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(cardColor);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 10, 15, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // 共通サイズ
+        Dimension fieldSize = new Dimension(500, 45);
+
+        // --- ニックネーム ---
+        JLabel nameLabel = new JLabel("ニックネーム");
+        nameLabel.setFont(labelFont);
+
+        RoundedTextField nameField = new RoundedTextField(20);
+        nameField.setFont(fieldFont);
+        nameField.setPreferredSize(fieldSize);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(nameLabel, gbc);
+
+        gbc.gridx = 1;
+        formPanel.add(nameField, gbc);
+
+        // --- 身長 ---
+        JLabel heightLabel = new JLabel("身長(cm)");
+        heightLabel.setFont(labelFont);
+
+        RoundedTextField heightField = new RoundedTextField(20);
+        heightField.setFont(fieldFont);
+        heightField.setPreferredSize(fieldSize);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        formPanel.add(heightLabel, gbc);
+
+        gbc.gridx = 1;
+        formPanel.add(heightField, gbc);
+
+        // --- 体重 ---
+        JLabel weightLabel = new JLabel("体重(kg)");
+        weightLabel.setFont(labelFont);
+
+        RoundedTextField weightField = new RoundedTextField(20);
+        weightField.setFont(fieldFont);
+        weightField.setPreferredSize(fieldSize);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        formPanel.add(weightLabel, gbc);
+
+        gbc.gridx = 1;
+        formPanel.add(weightField, gbc);
+
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(cardColor);
-
-        // タイトル
-        JLabel titleLabel = new JLabel("初回登録");
-        titleLabel.setFont(titleFont);
-        titleLabel.setForeground(buttonColor);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titleLabel.setBackground(cardColor);
-        titleLabel.setOpaque(true);
-
-        // ニックネーム
-        JLabel nameLabel = new JLabel("ニックネーム");
-        nameLabel.setFont(labelFont);
-        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        nameLabel.setBackground(cardColor);
-        nameLabel.setOpaque(true);
-
-        JTextField nameField = new JTextField();
-        nameField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(
-                        new Color(180, 220, 180),
-                        2,
-                        true),
-                BorderFactory.createEmptyBorder(10, 15, 10, 15)));
-
-        nameField.setFont(fieldFont);
-        nameField.setMaximumSize(new Dimension(500, 50));
-        nameField.setBackground(Color.WHITE);
-
-        // 身長
-        JLabel heightLabel = new JLabel("身長(cm)");
-        heightLabel.setFont(labelFont);
-        heightLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        heightLabel.setBackground(cardColor);
-        heightLabel.setOpaque(true);
-
-        JTextField heightField = new JTextField();
-        heightField.setFont(fieldFont);
-        heightField.setMaximumSize(new Dimension(500, 50));
-        heightField.setBackground(Color.WHITE);
-
-        heightField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(
-                        new Color(180, 220, 180),
-                        2,
-                        true),
-                BorderFactory.createEmptyBorder(
-                        10, 15, 10, 15)));
-
-        // 体重
-        JLabel weightLabel = new JLabel("体重(kg)");
-        weightLabel.setFont(labelFont);
-        weightLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        weightLabel.setBackground(cardColor);
-        weightLabel.setOpaque(true);
-
-        JTextField weightField = new JTextField();
-        weightField.setFont(fieldFont);
-        weightField.setMaximumSize(new Dimension(500, 50));
-        weightField.setBackground(Color.WHITE);
-
-        weightField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(
-                        new Color(180, 220, 180),
-                        2,
-                        true),
-                BorderFactory.createEmptyBorder(
-                        10, 15, 10, 15)));
 
         // 登録ボタン
         JButton registerButton = new JButton("登録") {
@@ -125,65 +113,48 @@ public class RegisterClient {
 
                 Graphics2D g2 = (Graphics2D) g.create();
 
-                g2.setRenderingHint(
-                        RenderingHints.KEY_ANTIALIASING,
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                         RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int arc = 40;
 
                 // 影
                 g2.setColor(new Color(0, 0, 0, 30));
+                g2.fillRoundRect(4, 4, getWidth() - 4, getHeight() - 4, arc, arc);
 
-                g2.fillRoundRect(
-                        10,
-                        10,
-                        getWidth() - 1,
-                        getHeight() - 1,
-                        40,
-                        40);
+                // 本体
                 g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth() - 4, getHeight() - 4, arc, arc);
 
-                g2.fillRoundRect(
-                        0,
-                        0,
-                        getWidth(),
-                        getHeight(),
-                        40,
-                        40);
-
-                super.paintComponent(g2);
                 g2.dispose();
+
+                super.paintComponent(g);
             }
 
             @Override
             protected void paintBorder(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
 
-                g2.setRenderingHint(
-                        RenderingHints.KEY_ANTIALIASING,
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                         RenderingHints.VALUE_ANTIALIAS_ON);
 
                 g2.setColor(getBackground());
 
-                g2.drawRoundRect(
-                        0,
-                        0,
-                        getWidth() - 1,
-                        getHeight() - 1,
-                        40,
-                        40);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 40, 40);
 
                 g2.dispose();
             }
         };
         registerButton.setFont(labelFont);
-        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.setBackground(buttonColor);
         registerButton.setForeground(Color.WHITE);
         registerButton.setFocusPainted(false);
+        registerButton.setContentAreaFilled(false);
+        registerButton.setOpaque(false);
         registerButton.setMaximumSize(new Dimension(250, 60));
 
         // コンポーネント追加
-        centerPanel.add(titleLabel);
-        centerPanel.add(Box.createVerticalStrut(40));
+        JLabel titleLabel = new JLabel("");
 
         centerPanel.add(nameLabel);
         centerPanel.add(Box.createVerticalStrut(10));
@@ -203,21 +174,27 @@ public class RegisterClient {
 
         centerPanel.add(Box.createVerticalStrut(50));
 
-        centerPanel.add(registerButton);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(cardColor);
+        buttonPanel.add(registerButton);
+
+        centerPanel.add(buttonPanel);
+        centerPanel.add(titleLabel);
+        centerPanel.add(Box.createVerticalStrut(40));
+        centerPanel.add(formPanel);
+        centerPanel.add(Box.createVerticalStrut(50));
 
         // 枠を追加
-        JPanel cardPanel = new JPanel(new BorderLayout());
+        RoundedPanel cardPanel = new RoundedPanel();
+        cardPanel.setLayout(new BorderLayout());
+        cardPanel.setOpaque(false);
         cardPanel.setBackground(cardColor);
-        cardPanel.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(buttonColor, 4, true),
-                BorderFactory.createEmptyBorder(30, 30, 30, 30)));
+        cardPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         cardPanel.add(centerPanel, BorderLayout.CENTER);
 
         // フォームを少し下げるためのパネル
         JPanel wrapper = new JPanel(new GridBagLayout());
         wrapper.setBackground(backgroundColor);
-
-        GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(00, 0, 0, 0); // 枠の高さ調整
