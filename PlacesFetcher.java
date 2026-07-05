@@ -36,8 +36,7 @@ public class PlacesFetcher {
 
         if (API_KEY == null || API_KEY.isEmpty()) {
             throw new IllegalStateException(
-                "環境変数 GOOGLE_PLACES_API_KEY が設定されていません。setx で設定後、ターミナルを開き直してください。"
-            );
+                    "環境変数 GOOGLE_PLACES_API_KEY が設定されていません。setx で設定後、ターミナルを開き直してください。");
         }
 
         JSONObject locationRestriction = new JSONObject()
@@ -56,7 +55,7 @@ public class PlacesFetcher {
                 .uri(URI.create(ENDPOINT))
                 .header("Content-Type", "application/json")
                 .header("X-Goog-Api-Key", API_KEY)
-                
+
                 .header("X-Goog-FieldMask", "places.displayName,places.location")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString()))
                 .build();
@@ -92,7 +91,7 @@ public class PlacesFetcher {
 
     // 動作確認用（単体で実行してテストできる）
     public static void main(String[] args) throws Exception {
-        //東京駅を中心に半径1000m以内の飲食店、ジムをAPIに問合せしrestaurantsに格納
+        // 東京駅を中心に半径1000m以内の飲食店、ジムをAPIに問合せしrestaurantsに格納
         PlacesFetcher fetcher = new PlacesFetcher();
 
         List<Place> restaurants = fetcher.searchNearby(35.681236, 139.767125, 1000, "restaurant");
