@@ -230,7 +230,7 @@ public class RegisterClient {
 
                         try {
                                 // TCP接続
-                                Socket socket = new Socket("133.14.208.158", 5000);
+                                Socket socket = new Socket("133.20.64.13", 5000);
 
 
                                 PrintWriter writer = new PrintWriter(
