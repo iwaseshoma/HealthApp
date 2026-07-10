@@ -232,6 +232,7 @@ public class RegisterClient {
                                 // TCP接続
                                 Socket socket = new Socket("133.14.208.158", 5000);
 
+
                                 PrintWriter writer = new PrintWriter(
                                                 socket.getOutputStream(),
                                                 true);
