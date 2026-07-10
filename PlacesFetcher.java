@@ -94,11 +94,11 @@ public class PlacesFetcher {
         // 東京駅を中心に半径1000m以内の飲食店、ジムをAPIに問合せしrestaurantsに格納
         PlacesFetcher fetcher = new PlacesFetcher();
 
-        List<Place> restaurants = fetcher.searchNearby(35.681236, 139.767125, 1000, "restaurant");
+        List<Place> restaurants = fetcher.searchNearby(35.748, 139.806, 1000, "restaurant");
         System.out.println("=== 飲食店 ===");
         restaurants.forEach(System.out::println);
 
-        List<Place> gyms = fetcher.searchNearby(35.681236, 139.767125, 1000, "gym");
+        List<Place> gyms = fetcher.searchNearby(35.748, 139.806, 1000, "gym");
         System.out.println("=== ジム ===");
         gyms.forEach(System.out::println);
     }
