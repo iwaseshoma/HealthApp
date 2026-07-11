@@ -4,7 +4,18 @@ import java.util.ArrayList;
 
 public class CountryJudge {
 
-    public static void judge(double averageCalorie) {
+    public static String judge(int[] weekCalories) {
+
+
+        // 1週間の合計
+        int total = 0;
+
+        for (int calorie : weekCalories) {
+            total += calorie;
+        }
+
+        // 1日平均
+        double averageCalorie = total / 7.0;
 
         ArrayList<CountryData> list = new ArrayList<>();
 
@@ -21,20 +32,19 @@ public class CountryJudge {
 
                 String[] data = line.split(",");
 
-                String country = data[0];
-                String age = data[1];
-                String gender = data[2];
-                int calorie = Integer.parseInt(data[3]);
-
-                list.add(new CountryData(country, age, gender, calorie));
+                list.add(new CountryData(
+        data[0],
+        data[1],
+        data[2],
+        Double.parseDouble(data[3])));
             }
 
             br.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
+    e.printStackTrace();
+    return "country.csv を読み込めませんでした。";
+}
 
         CountryData nearest = null;
         double min = Double.MAX_VALUE;
@@ -49,16 +59,17 @@ public class CountryJudge {
             }
         }
 
-        System.out.println("1日平均摂取カロリー");
-        System.out.printf("%.0f kcal%n", averageCalorie);
+        if (nearest == null) {
+            return "比較できるデータがありません。";
+        }
 
-        System.out.println();
-
-        System.out.println("あなたに最も近いのは");
-
-        System.out.println("国：" + nearest.getCountry());
-        System.out.println("年代：" + nearest.getAge());
-        System.out.println("性別：" + nearest.getGender());
-        System.out.println("平均との差：" + (int)min + " kcal");
+        return "===== 判定結果 =====\n"
+                + "1週間の合計：" + total + " kcal\n"
+                + String.format("1日平均：%.1f kcal\n\n", averageCalorie)
+                + "あなたに最も近い食生活\n"
+                + "国：" + nearest.getCountry() + "\n"
+                + "年代：" + nearest.getAge() + "\n"
+                + "性別：" + nearest.getGender() + "\n"
+                + String.format("平均との差：%.1f kcal", min);
     }
 }
