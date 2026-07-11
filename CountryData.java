@@ -3,13 +3,17 @@ public class CountryData {
     private String country;
     private String age;
     private String gender;
-    private int calorie;
+    private double calorie;
 
-    public CountryData(String country, String age, String gender, int calorie) {
+    public CountryData(String country, String age, String gender, double calorie) {
         this.country = country;
         this.age = age;
         this.gender = gender;
         this.calorie = calorie;
+    }
+
+    public double getCalorie() {
+        return calorie;
     }
 
     public String getCountry() {
@@ -24,7 +28,4 @@ public class CountryData {
         return gender;
     }
 
-    public int getCalorie() {
-        return calorie;
-    }
 }
