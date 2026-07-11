@@ -69,7 +69,9 @@ public class MapClient {
 
     // ===== 状態管理 =====
     private static Set<PlaceWaypoint> waypoints = new HashSet<>();
-    private static int totalCalorieIntake = 0; // 累計摂取カロリー(簡易)
+    private static int totalCalorieIntake = 0;
+    private static int[] weekCalories = new int[7];
+    private static int currentDay = 0;
 
     // 左側パネル(CardLayoutで「未選択」「詳細」を切り替え)
     private static JPanel leftPanel;
@@ -213,8 +215,7 @@ public class MapClient {
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 options,
-                options[0]
-        );
+                options[0]);
 
         if (selectedOption == null) {
             return null; // キャンセルされた場合
@@ -289,8 +290,14 @@ public class MapClient {
         JButton registerButton = new JButton("このメニューを登録する");
         registerButton.setFont(new Font("メイリオ", Font.PLAIN, 14));
 
+        JButton completeButton = new JButton("登録完了");
+        completeButton.setFont(new Font("メイリオ", Font.PLAIN, 14));
+        completeButton.setEnabled(false); // 最初は押せない
+
         registerButton.addActionListener(e -> {
+
             MenuDatabase.MenuItem selected = menuList.getSelectedValue();
+
             if (selected == null) {
                 JOptionPane.showMessageDialog(panel, "メニューを選択してください。");
                 return;
@@ -298,31 +305,86 @@ public class MapClient {
 
             int calorie = selected.calorie;
 
-            // 「その他(自由入力)」が選ばれた場合は手入力させる
             if (calorie == -1) {
-                String input = JOptionPane.showInputDialog(panel, "食べたメニュー名とカロリー(kcal)を入力してください\n例: オムライス 650");
-                if (input == null || input.isBlank()) return;
+
+                String input = JOptionPane.showInputDialog(
+                        panel,
+                        "食べたメニュー名とカロリー(kcal)を入力してください\n例: オムライス 650");
+
+                if (input == null || input.isBlank())
+                    return;
 
                 try {
                     String[] parts = input.trim().split("\\s+");
                     calorie = Integer.parseInt(parts[parts.length - 1]);
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(panel, "カロリーの数値を正しく入力してください。");
+                    JOptionPane.showMessageDialog(panel,
+                            "カロリーの数値を正しく入力してください。");
                     return;
                 }
             }
 
+            // 合計カロリーを更新
             totalCalorieIntake += calorie;
-            totalCalorieLabel.setText("本日の摂取カロリー合計: " + totalCalorieIntake + " kcal");
 
-            JOptionPane.showMessageDialog(panel,
-                    place.name + " で「" + selected.name + "」(" + calorie + " kcal) を記録しました。");
+            // ラベル更新
+            totalCalorieLabel.setText(
+                    "本日の摂取カロリー合計: "
+                            + totalCalorieIntake + " kcal");
 
-            // TODO: ここでサーバーへ送信し、食事記録として保存する処理を追加する
+            // メニュー名を保存
+            registerButton.putClientProperty("menuName", selected.name);
+
+            // 登録完了ボタンを押せるようにする
+            completeButton.setEnabled(true);
+
+            JOptionPane.showMessageDialog(
+                    panel,
+                    selected.name + "（" + calorie + " kcal）を登録しました。\n"
+                            + "食事が終わったら「登録完了」を押してください。");
         });
 
-        panel.add(registerButton, BorderLayout.SOUTH);
+        completeButton.addActionListener(e -> {
 
+            // 今日の摂取カロリーを保存
+            weekCalories[currentDay] = totalCalorieIntake;
+
+            JOptionPane.showMessageDialog(
+                    panel,
+                    (currentDay + 1) + "日目の記録を保存しました。");
+
+            // 次の日へ
+            currentDay++;
+
+            // 今日のカロリーをリセット
+            totalCalorieIntake = 0;
+            totalCalorieLabel.setText("本日の摂取カロリー合計: 0 kcal");
+
+            // 7日分そろったら比較
+            if (currentDay == 7) {
+
+                String result = CountryJudge.judge(weekCalories);
+
+                JOptionPane.showMessageDialog(
+                        panel,
+                        result,
+                        "1週間の判定結果",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // 次の週のためにリセット
+                currentDay = 0;
+                Arrays.fill(weekCalories, 0);
+            }
+
+            completeButton.setEnabled(false);
+        });
+
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+
+        buttonPanel.add(registerButton);
+        buttonPanel.add(completeButton);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -362,5 +424,7 @@ public class MapClient {
         panel.add(registerButton, BorderLayout.SOUTH);
 
         return panel;
+
     }
+
 }
