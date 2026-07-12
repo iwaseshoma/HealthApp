@@ -73,6 +73,14 @@ public class MapClient {
     private static int[] weekCalories = new int[7];
     private static int currentDay = 0;
 
+    // 飲食店・ジム一覧
+    private static List<PlacesFetcher.Place> restaurantList;
+    private static List<PlacesFetcher.Place> gymList;
+
+    // 地図
+    private static JXMapViewer mapViewer;
+    private static WaypointPainter<PlaceWaypoint> painter;
+
     // 左側パネル(CardLayoutで「未選択」「詳細」を切り替え)
     private static JPanel leftPanel;
     private static CardLayout cardLayout;
@@ -90,7 +98,7 @@ public class MapClient {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // ===== 地図の準備 =====
-        JXMapViewer mapViewer = new JXMapViewer();
+        mapViewer = new JXMapViewer();
         TileFactoryInfo info = new TileFactoryInfo(
                 1, 17, 17,
                 256, true, true,
@@ -115,17 +123,50 @@ public class MapClient {
 
         // ===== 店舗データ取得 =====
         PlacesFetcher fetcher = new PlacesFetcher();
-        List<PlacesFetcher.Place> restaurants = fetcher.searchNearby(35.748, 139.806, 1000, "restaurant");
-        List<PlacesFetcher.Place> gyms = fetcher.searchNearby(35.748, 139.806, 1000, "gym");
 
-        for (PlacesFetcher.Place p : restaurants) {
-            waypoints.add(new PlaceWaypoint(p));
+        restaurantList = fetcher.searchNearby(
+                35.748,
+                139.806,
+                1000,
+                "restaurant");
+
+        gymList = fetcher.searchNearby(
+                35.748,
+                139.806,
+                1000,
+                "gym");
+        // 表示モード
+        String mode = "all";
+
+        if (args != null && args.length > 0) {
+            mode = args[0];
         }
-        for (PlacesFetcher.Place p : gyms) {
-            waypoints.add(new PlaceWaypoint(p));
+        waypoints.clear();
+
+        if (mode.equals("gym")) {
+
+            for (PlacesFetcher.Place p : gymList) {
+                waypoints.add(new PlaceWaypoint(p));
+            }
+
+        } else if (mode.equals("restaurant")) {
+
+            for (PlacesFetcher.Place p : restaurantList) {
+                waypoints.add(new PlaceWaypoint(p));
+            }
+
+        } else {
+
+            for (PlacesFetcher.Place p : restaurantList) {
+                waypoints.add(new PlaceWaypoint(p));
+            }
+
+            for (PlacesFetcher.Place p : gymList) {
+                waypoints.add(new PlaceWaypoint(p));
+            }
         }
 
-        WaypointPainter<PlaceWaypoint> painter = new WaypointPainter<>();
+        painter = new WaypointPainter<>();
         painter.setWaypoints(waypoints);
         painter.setRenderer(new ColoredWaypointRenderer());
         mapViewer.setOverlayPainter(painter);
@@ -377,13 +418,13 @@ public class MapClient {
 
                 // スクロール付きにしてサイズを指定
                 JScrollPane resultScrollPane = new JScrollPane(textArea);
-resultScrollPane.setPreferredSize(new Dimension(700, 500));
+                resultScrollPane.setPreferredSize(new Dimension(700, 500));
 
-JOptionPane.showMessageDialog(
-        panel,
-        resultScrollPane,
-        "1週間の判定結果",
-        JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        panel,
+                        resultScrollPane,
+                        "1週間の判定結果",
+                        JOptionPane.INFORMATION_MESSAGE);
 
                 // 次の週のためにリセット
                 currentDay = 0;
@@ -439,6 +480,30 @@ JOptionPane.showMessageDialog(
 
         return panel;
 
+    }
+
+    private static void showRestaurants() {
+
+        waypoints.clear();
+
+        for (PlacesFetcher.Place p : restaurantList) {
+            waypoints.add(new PlaceWaypoint(p));
+        }
+
+        painter.setWaypoints(waypoints);
+        mapViewer.repaint();
+    }
+
+    private static void showGyms() {
+
+        waypoints.clear();
+
+        for (PlacesFetcher.Place p : gymList) {
+            waypoints.add(new PlaceWaypoint(p));
+        }
+
+        painter.setWaypoints(waypoints);
+        mapViewer.repaint();
     }
 
 }
