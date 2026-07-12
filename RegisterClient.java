@@ -232,7 +232,6 @@ public class RegisterClient {
                                 // TCP接続
                                 Socket socket = new Socket("192.168.0.202", 5000);
 
-
                                 PrintWriter writer = new PrintWriter(
                                                 socket.getOutputStream(),
                                                 true);
