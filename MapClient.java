@@ -365,11 +365,25 @@ public class MapClient {
 
                 String result = CountryJudge.judge(weekCalories);
 
-                JOptionPane.showMessageDialog(
-                        panel,
-                        result,
-                        "1週間の判定結果",
-                        JOptionPane.INFORMATION_MESSAGE);
+                JTextArea textArea = new JTextArea(result);
+                textArea.setEditable(false);
+                textArea.setFont(new Font("メイリオ", Font.BOLD, 24));
+                textArea.setLineWrap(true);
+                textArea.setWrapStyleWord(true);
+
+                // 背景をダイアログと同じ色にする
+                textArea.setBackground(UIManager.getColor("OptionPane.background"));
+                textArea.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+                // スクロール付きにしてサイズを指定
+                JScrollPane resultScrollPane = new JScrollPane(textArea);
+resultScrollPane.setPreferredSize(new Dimension(700, 500));
+
+JOptionPane.showMessageDialog(
+        panel,
+        resultScrollPane,
+        "1週間の判定結果",
+        JOptionPane.INFORMATION_MESSAGE);
 
                 // 次の週のためにリセット
                 currentDay = 0;
