@@ -137,8 +137,17 @@ public class MapClient {
         // ===== 店舗データ取得 =====
         PlacesFetcher fetcher = new PlacesFetcher();
 
-        restaurantList = fetcher.searchNearby(35.748, 139.806, 2000, "restaurant"); // 1000 → 2000mに拡大
-gymList = fetcher.searchNearby(35.748, 139.806, 2000, "gym");
+        restaurantList = fetcher.searchNearby(
+                35.748,
+                139.806,
+                1000,
+                "restaurant");
+
+        gymList = fetcher.searchNearby(
+                35.748,
+                139.806,
+                1000,
+                "gym");
 
         // 表示モード
         String mode = "all";
@@ -235,8 +244,35 @@ gymList = fetcher.searchNearby(35.748, 139.806, 2000, "gym");
             }
         });
 
+        // ===== 地図右上の切り替えボタン =====
+        JPanel toggleButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+
+        JButton restaurantToggleButton = new JButton("🍴 飲食店");
+        JButton gymToggleButton = new JButton("🏋 ジム");
+        restaurantToggleButton.setFont(new Font("メイリオ", Font.PLAIN, 13));
+        gymToggleButton.setFont(new Font("メイリオ", Font.PLAIN, 13));
+
+        restaurantToggleButton.addActionListener(e -> {
+            showRestaurants();
+            // 表示が切り替わったら、選択中の詳細パネルは一旦閉じる
+            cardLayout.show(leftPanel, CARD_EMPTY);
+        });
+
+        gymToggleButton.addActionListener(e -> {
+            showGyms();
+            cardLayout.show(leftPanel, CARD_EMPTY);
+        });
+
+        toggleButtonPanel.add(restaurantToggleButton);
+        toggleButtonPanel.add(gymToggleButton);
+
+        // 地図を包むパネル(上部に切り替えボタン、中央に地図本体)
+        JPanel mapWrapperPanel = new JPanel(new BorderLayout());
+        mapWrapperPanel.add(toggleButtonPanel, BorderLayout.NORTH);
+        mapWrapperPanel.add(mapViewer, BorderLayout.CENTER);
+
         // ===== 画面分割 (左:情報パネル 右:地図) =====
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, mapViewer);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, mapWrapperPanel);
         splitPane.setDividerLocation(380);
         splitPane.setOneTouchExpandable(true);
 
