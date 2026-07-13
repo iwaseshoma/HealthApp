@@ -70,6 +70,8 @@ public class MapClient {
     // ===== 状態管理 =====
     private static Set<PlaceWaypoint> waypoints = new HashSet<>();
     private static int totalCalorieIntake = 0;
+    private static int totalCalorieBurn = 0;     // 累計消費カロリー(簡易)
+    private static double userWeightKg = -1;     // カロリー計算用の体重(未設定なら-1)
     private static int[] weekCalories = new int[7];
     private static int currentDay = 0;
 
@@ -92,6 +94,17 @@ public class MapClient {
     public static void main(String[] args) throws Exception {
 
         System.setProperty("http.agent", "HealthApp-Practice/1.0 (student project; contact: 24fi017@ms.dendai.ac.jp)");
+
+        // RegisterClientから体重が渡されていれば、それを使う(再入力を求めない)
+        // args[0]: 表示モード("gym" / "restaurant" / それ以外は全件)
+        // args[1]: 体重(kg)
+        if (args != null && args.length >= 2) {
+            try {
+                userWeightKg = Double.parseDouble(args[1].trim());
+            } catch (NumberFormatException ex) {
+                System.err.println("体重の値が不正なため未設定として扱います: " + args[1]);
+            }
+        }
 
         JFrame frame = new JFrame("健康管理アプリ - 地図画面");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -124,17 +137,9 @@ public class MapClient {
         // ===== 店舗データ取得 =====
         PlacesFetcher fetcher = new PlacesFetcher();
 
-        restaurantList = fetcher.searchNearby(
-                35.748,
-                139.806,
-                1000,
-                "restaurant");
+        restaurantList = fetcher.searchNearby(35.748, 139.806, 2000, "restaurant"); // 1000 → 2000mに拡大
+gymList = fetcher.searchNearby(35.748, 139.806, 2000, "gym");
 
-        gymList = fetcher.searchNearby(
-                35.748,
-                139.806,
-                1000,
-                "gym");
         // 表示モード
         String mode = "all";
 
@@ -183,8 +188,9 @@ public class MapClient {
         emptyPanel.add(emptyLabel, BorderLayout.CENTER);
 
         // 累計カロリー表示(画面下部に常時表示)
-        totalCalorieLabel = new JLabel("本日の摂取カロリー合計: 0 kcal", SwingConstants.CENTER);
+        totalCalorieLabel = new JLabel("", SwingConstants.CENTER);
         totalCalorieLabel.setFont(new Font("メイリオ", Font.BOLD, 14));
+        updateCalorieLabel();
         emptyPanel.add(totalCalorieLabel, BorderLayout.SOUTH);
 
         leftPanel.add(emptyPanel, CARD_EMPTY);
@@ -307,7 +313,7 @@ public class MapClient {
         leftPanel.repaint();
     }
 
-    // 飲食店用: メニュー選択リスト + 登録ボタン
+    // 飲食店用: メニュー選択リスト + 登録ボタン + 登録完了(週次記録)ボタン
     private static JPanel buildRestaurantSelectionPanel(PlacesFetcher.Place place) {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
@@ -367,11 +373,7 @@ public class MapClient {
 
             // 合計カロリーを更新
             totalCalorieIntake += calorie;
-
-            // ラベル更新
-            totalCalorieLabel.setText(
-                    "本日の摂取カロリー合計: "
-                            + totalCalorieIntake + " kcal");
+            updateCalorieLabel();
 
             // メニュー名を保存
             registerButton.putClientProperty("menuName", selected.name);
@@ -397,9 +399,10 @@ public class MapClient {
             // 次の日へ
             currentDay++;
 
-            // 今日のカロリーをリセット
+            // 今日のカロリーをリセット(摂取・消費とも1日単位でリセット)
             totalCalorieIntake = 0;
-            totalCalorieLabel.setText("本日の摂取カロリー合計: 0 kcal");
+            totalCalorieBurn = 0;
+            updateCalorieLabel();
 
             // 7日分そろったら比較
             if (currentDay == 7) {
@@ -443,7 +446,7 @@ public class MapClient {
         return panel;
     }
 
-    // ジム用: トレーニング種目選択(有酸素は後日、時間・距離入力に対応予定)
+    // ジム用: トレーニング種目ごとにボタンを配置し、押すと種類に応じた入力ダイアログを開く
     private static JPanel buildGymSelectionPanel(PlacesFetcher.Place place) {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
@@ -451,35 +454,177 @@ public class MapClient {
         instructionLabel.setFont(new Font("メイリオ", Font.PLAIN, 14));
         panel.add(instructionLabel, BorderLayout.NORTH);
 
-        List<String> gymMenu = MenuDatabase.getGymMenu();
-        DefaultListModel<String> model = new DefaultListModel<>();
-        for (String item : gymMenu) {
-            model.addElement(item);
+        JPanel buttonListPanel = new JPanel();
+        buttonListPanel.setLayout(new BoxLayout(buttonListPanel, BoxLayout.Y_AXIS));
+
+        List<MenuDatabase.GymActivity> activities = MenuDatabase.getGymMenu();
+        for (MenuDatabase.GymActivity activity : activities) {
+            JButton button = new JButton(activity.name);
+            button.setFont(new Font("メイリオ", Font.PLAIN, 14));
+            button.setAlignmentX(Component.LEFT_ALIGNMENT);
+            button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+            button.addActionListener(e -> {
+                switch (activity.type) {
+                    case AEROBIC -> openAerobicDialog(panel, place, activity.name);
+                    case STRENGTH -> openStrengthDialog(panel, place, activity.name);
+                    case STRETCH -> openStretchDialog(panel, place, activity.name);
+                    case FREE -> openFreeGymDialog(panel, place);
+                }
+            });
+
+            buttonListPanel.add(button);
+            buttonListPanel.add(Box.createVerticalStrut(8));
         }
 
-        JList<String> menuList = new JList<>(model);
-        menuList.setFont(new Font("メイリオ", Font.PLAIN, 14));
-
-        JScrollPane scrollPane = new JScrollPane(menuList);
+        JScrollPane scrollPane = new JScrollPane(buttonListPanel);
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        JButton registerButton = new JButton("このトレーニングを登録する");
-        registerButton.setFont(new Font("メイリオ", Font.PLAIN, 14));
-
-        registerButton.addActionListener(e -> {
-            String selected = menuList.getSelectedValue();
-            if (selected == null) {
-                JOptionPane.showMessageDialog(panel, "トレーニング内容を選択してください。");
-                return;
-            }
-            // TODO: 有酸素の場合は時間・距離を追加入力し、消費カロリーを計算する処理へ
-            JOptionPane.showMessageDialog(panel, place.name + " で「" + selected + "」を記録しました。");
-        });
-
-        panel.add(registerButton, BorderLayout.SOUTH);
-
         return panel;
+    }
 
+    // 有酸素運動: 時間(分)・速度(km/h)を入力させ、簡易的にMET法で消費カロリーを計算する
+    private static void openAerobicDialog(Component parent, PlacesFetcher.Place place, String activityName) {
+
+        JTextField timeField = new JTextField();
+        JTextField speedField = new JTextField();
+
+        JPanel inputPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        inputPanel.add(new JLabel("時間(分):"));
+        inputPanel.add(timeField);
+        inputPanel.add(new JLabel("速度(km/h):"));
+        inputPanel.add(speedField);
+
+        int result = JOptionPane.showConfirmDialog(parent, inputPanel,
+                activityName + " の記録", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        try {
+            double minutes = Double.parseDouble(timeField.getText().trim());
+            double speedKmh = Double.parseDouble(speedField.getText().trim());
+
+            double weightKg = getOrAskUserWeight(parent);
+            if (weightKg <= 0) return;
+
+            // 簡易MET推定: 速度(km/h)にほぼ比例するとして概算(厳密な運動生理学的数値ではない)
+            double met = speedKmh * 1.0;
+            double hours = minutes / 60.0;
+            int burnedCalorie = (int) Math.round(met * weightKg * hours);
+
+            recordBurnedCalorie(parent, place, activityName + "(" + minutes + "分, " + speedKmh + "km/h)", burnedCalorie);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(parent, "時間・速度は数値で入力してください。");
+        }
+    }
+
+    // 筋力トレーニング: 重量(kg)・セット数・回数を入力させる
+    private static void openStrengthDialog(Component parent, PlacesFetcher.Place place, String activityName) {
+
+        JTextField weightField = new JTextField();
+        JTextField setsField = new JTextField();
+        JTextField repsField = new JTextField();
+
+        JPanel inputPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        inputPanel.add(new JLabel("重量(kg):"));
+        inputPanel.add(weightField);
+        inputPanel.add(new JLabel("セット数:"));
+        inputPanel.add(setsField);
+        inputPanel.add(new JLabel("回数(1セットあたり):"));
+        inputPanel.add(repsField);
+
+        int result = JOptionPane.showConfirmDialog(parent, inputPanel,
+                activityName + " の記録", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        try {
+            double weightLifted = Double.parseDouble(weightField.getText().trim());
+            int sets = Integer.parseInt(setsField.getText().trim());
+            int reps = Integer.parseInt(repsField.getText().trim());
+
+            // 簡易的な消費カロリー概算(挙上重量×総回数に係数を掛けただけの簡易推定値)
+            int burnedCalorie = (int) Math.round(weightLifted * sets * reps * 0.1);
+
+            String detail = activityName + "(" + weightLifted + "kg × " + sets + "セット × " + reps + "回)";
+            recordBurnedCalorie(parent, place, detail, burnedCalorie);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(parent, "重量・セット数・回数は数値で入力してください。");
+        }
+    }
+
+    // ストレッチ・ヨガ: 時間のみ入力させる
+    private static void openStretchDialog(Component parent, PlacesFetcher.Place place, String activityName) {
+
+        String input = JOptionPane.showInputDialog(parent, activityName + " の時間(分)を入力してください");
+        if (input == null || input.isBlank()) return;
+
+        try {
+            double minutes = Double.parseDouble(input.trim());
+            double weightKg = getOrAskUserWeight(parent);
+            if (weightKg <= 0) return;
+
+            double met = 2.5; // ヨガ・ストレッチの一般的なMET値
+            double hours = minutes / 60.0;
+            int burnedCalorie = (int) Math.round(met * weightKg * hours);
+
+            recordBurnedCalorie(parent, place, activityName + "(" + minutes + "分)", burnedCalorie);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(parent, "時間は数値で入力してください。");
+        }
+    }
+
+    // 自由入力: 内容と消費カロリーを手入力
+    private static void openFreeGymDialog(Component parent, PlacesFetcher.Place place) {
+        String input = JOptionPane.showInputDialog(parent, "トレーニング内容と消費カロリー(kcal)を入力してください\n例: 縄跳び 200");
+        if (input == null || input.isBlank()) return;
+
+        try {
+            String[] parts = input.trim().split("\\s+");
+            int burnedCalorie = Integer.parseInt(parts[parts.length - 1]);
+            String activityName = input.substring(0, input.lastIndexOf(parts[parts.length - 1])).trim();
+
+            recordBurnedCalorie(parent, place, activityName, burnedCalorie);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parent, "カロリーの数値を正しく入力してください。");
+        }
+    }
+
+    // 消費カロリーの記録を共通化(累計への加算と表示更新)
+    private static void recordBurnedCalorie(Component parent, PlacesFetcher.Place place, String detail, int burnedCalorie) {
+        totalCalorieBurn += burnedCalorie;
+        updateCalorieLabel();
+
+        JOptionPane.showMessageDialog(parent,
+                place.name + " で「" + detail + "」を記録しました。(推定消費: " + burnedCalorie + " kcal)");
+
+        // TODO: ここでサーバーへ送信し、運動記録として保存する処理を追加する
+    }
+
+    // 体重が未設定なら入力を求め、以後はキャッシュして使い回す
+    // (RegisterClientから渡されていれば、ここで聞かれることはない)
+    private static double getOrAskUserWeight(Component parent) {
+        if (userWeightKg > 0) return userWeightKg;
+
+        String input = JOptionPane.showInputDialog(parent, "カロリー計算のため、体重(kg)を入力してください");
+        if (input == null || input.isBlank()) return -1;
+
+        try {
+            userWeightKg = Double.parseDouble(input.trim());
+            return userWeightKg;
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(parent, "体重は数値で入力してください。");
+            return -1;
+        }
+    }
+
+    private static void updateCalorieLabel() {
+        totalCalorieLabel.setText(
+                "摂取: " + totalCalorieIntake + " kcal　/　消費: " + totalCalorieBurn + " kcal");
     }
 
     private static void showRestaurants() {

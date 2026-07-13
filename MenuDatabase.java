@@ -35,14 +35,33 @@ public class MenuDatabase {
         return list;
     }
 
-    // ジムで選べる一般的なトレーニング例（有酸素は時間・距離から別途計算）
-    public static List<String> getGymMenu() {
-        List<String> list = new ArrayList<>();
-        list.add("ランニング（有酸素）");
-        list.add("ウォーキング（有酸素）");
-        list.add("筋力トレーニング（無酸素）");
-        list.add("ヨガ・ストレッチ");
-        list.add("その他(自由入力)");
+    // ジムのトレーニング項目。種類ごとに入力させる項目が変わるため、
+    // 種類(Type)を持たせている
+    public static class GymActivity {
+        public enum Type {
+            AEROBIC,   // 有酸素運動(時間・速度を入力させる)
+            STRENGTH,  // 筋力トレーニング(重量・セット数・回数を入力させる)
+            STRETCH,   // ストレッチ・ヨガ(時間のみ入力させる)
+            FREE       // 自由入力
+        }
+
+        public final String name;
+        public final Type type;
+
+        public GymActivity(String name, Type type) {
+            this.name = name;
+            this.type = type;
+        }
+    }
+
+    // ジムで選べる一般的なトレーニング例
+    public static List<GymActivity> getGymMenu() {
+        List<GymActivity> list = new ArrayList<>();
+        list.add(new GymActivity("ランニング", GymActivity.Type.AEROBIC));
+        list.add(new GymActivity("ウォーキング", GymActivity.Type.AEROBIC));
+        list.add(new GymActivity("筋力トレーニング", GymActivity.Type.STRENGTH));
+        list.add(new GymActivity("ヨガ・ストレッチ", GymActivity.Type.STRETCH));
+        list.add(new GymActivity("その他(自由入力)", GymActivity.Type.FREE));
         return list;
     }
 }

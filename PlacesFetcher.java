@@ -47,9 +47,9 @@ public class PlacesFetcher {
                         .put("radius", radiusMeters));
 
         JSONObject requestBody = new JSONObject()
-                .put("includedTypes", new JSONArray().put(includedType))
-                .put("maxResultCount", 10)
-                .put("locationRestriction", locationRestriction);
+        .put("includedTypes", new JSONArray().put(includedType))
+        .put("maxResultCount", 20)   // ← ここ
+        .put("locationRestriction", locationRestriction);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(ENDPOINT))
