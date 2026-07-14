@@ -230,7 +230,7 @@ public class RegisterClient {
 
                         try {
                                 // TCP接続
-                                Socket socket = new Socket("133.14.214.254", 5000);
+                                Socket socket = new Socket("192.168.0.202", 5000);
 
                                 PrintWriter writer = new PrintWriter(
                                                 socket.getOutputStream(),
@@ -240,6 +240,12 @@ public class RegisterClient {
                                 writer.println(nickname);
                                 writer.println(height);
                                 writer.println(weight);
+                                MapClient.height = Double.parseDouble(height);
+                                MapClient.weight = Double.parseDouble(weight);
+
+                                System.out.println("RegisterClient");
+                                System.out.println(MapClient.height);
+                                System.out.println(MapClient.weight);
 
                                 writer.close();
                                 socket.close();
