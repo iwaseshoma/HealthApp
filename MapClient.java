@@ -69,12 +69,19 @@ public class MapClient {
 
     // ===== 状態管理 =====
     private static Set<PlaceWaypoint> waypoints = new HashSet<>();
-    private static int totalCalorieIntake = 0;
-    private static int totalCalorieBurn = 0;     // 累計消費カロリー(簡易)
-    private static double userWeightKg = -1;     // カロリー計算用の体重(未設定なら-1)
-    private static int[] weekCalories = new int[7];
+    public static double height;
+    public static double weight;
+    private static int totalCalorieBurn = 0; // 累計消費カロリー(簡易)
+    private static double userWeightKg = -1; // カロリー計算用の体重(未設定なら-1)
+    // 摂取カロリー
+    private static double totalCalorieIntake = 0;
+    private static double[] weekCalories = new double[7];
     private static int currentDay = 0;
 
+    // 消費カロリー
+    private static double totalBurnCalorie = 0;
+    private static double[] weekBurnCalories = new double[7];
+    private static int currentGymDay = 0;
     // 飲食店・ジム一覧
     private static List<PlacesFetcher.Place> restaurantList;
     private static List<PlacesFetcher.Place> gymList;
@@ -92,6 +99,10 @@ public class MapClient {
     private static final String CARD_DETAIL = "detail";
 
     public static void main(String[] args) throws Exception {
+
+        System.out.println("=== MapClient開始 ===");
+        System.out.println("height = " + height);
+        System.out.println("weight = " + weight);
 
         System.setProperty("http.agent", "HealthApp-Practice/1.0 (student project; contact: 24fi017@ms.dendai.ac.jp)");
 
@@ -443,7 +454,56 @@ public class MapClient {
             // 7日分そろったら比較
             if (currentDay == 7) {
 
+                double intake = 0;
+                double burn = 0;
+
+                // まず1週間分を合計
+                for (int i = 0; i < 7; i++) {
+                    intake += weekCalories[i];
+                    burn += weekBurnCalories[i];
+                }
+
+                // その後に計算
+                double bmr = calculateBMR();
+                double totalBurn = burn + bmr * 7;
+                double balance = intake - totalBurn;
+                double fatChange = balance / 7200.0;
+
                 String result = CountryJudge.judge(weekCalories);
+
+                result += "\n\n";
+                result += "===== 1週間の結果 =====\n";
+                result += String.format("摂取カロリー：%.0f kcal\n", intake);
+                result += String.format("運動消費：%.0f kcal\n", burn);
+                result += String.format("基礎代謝(7日分)：%.0f kcal\n", bmr * 7);
+                result += String.format("総消費：%.0f kcal\n", totalBurn);
+                result += String.format("収支：%.0f kcal\n", balance);
+
+                if (fatChange > 0) {
+
+                    result += String.format(
+                            "体脂肪は約%.2f kg増える計算です。",
+                            fatChange);
+
+                } else {
+
+                    result += String.format(
+                            "体脂肪は約%.2f kg減る計算です。",
+                            Math.abs(fatChange));
+                }
+
+                // JTextArea area = new JTextArea(result);
+                // area.setFont(new Font("メイリオ", Font.PLAIN, 20));
+                // area.setEditable(false);
+
+                // JScrollPane scroll = new JScrollPane(area);
+                // scroll.setPreferredSize(new Dimension(700, 500));
+
+                // JOptionPane.showMessageDialog(
+                //         panel,
+                //         scroll,
+                //         "1週間の結果",
+                //         JOptionPane.INFORMATION_MESSAGE);
 
                 JTextArea textArea = new JTextArea(result);
                 textArea.setEditable(false);
@@ -516,6 +576,44 @@ public class MapClient {
         JScrollPane scrollPane = new JScrollPane(buttonListPanel);
         panel.add(scrollPane, BorderLayout.CENTER);
 
+        // 今日を終了ボタン
+        JButton finishButton = new JButton("今日を終了");
+        finishButton.setFont(new Font("メイリオ", Font.PLAIN, 14));
+
+        panel.add(finishButton, BorderLayout.SOUTH);
+
+        finishButton.addActionListener(e -> {
+
+            // 今日の消費カロリーを保存
+            weekBurnCalories[currentGymDay] = totalBurnCalorie;
+
+            currentGymDay++;
+
+            totalBurnCalorie = 0;
+
+            if (currentDay < 7) {
+                JOptionPane.showMessageDialog(
+                        panel,
+                        currentGymDay + "日目を保存しました。");
+            }
+
+            if (currentGymDay == 7) {
+
+                double total = 0;
+
+                for (double c : weekBurnCalories) {
+                    total += c;
+                }
+
+                JOptionPane.showMessageDialog(
+                        panel,
+                        "===== 1週間の運動結果 =====\n\n"
+                                + "1週間の合計消費カロリー\n"
+                                + total + " kcal");
+
+            }
+        });
+
         return panel;
     }
 
@@ -534,21 +632,24 @@ public class MapClient {
         int result = JOptionPane.showConfirmDialog(parent, inputPanel,
                 activityName + " の記録", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (result != JOptionPane.OK_OPTION) return;
+        if (result != JOptionPane.OK_OPTION)
+            return;
 
         try {
             double minutes = Double.parseDouble(timeField.getText().trim());
             double speedKmh = Double.parseDouble(speedField.getText().trim());
 
             double weightKg = getOrAskUserWeight(parent);
-            if (weightKg <= 0) return;
+            if (weightKg <= 0)
+                return;
 
             // 簡易MET推定: 速度(km/h)にほぼ比例するとして概算(厳密な運動生理学的数値ではない)
             double met = speedKmh * 1.0;
             double hours = minutes / 60.0;
             int burnedCalorie = (int) Math.round(met * weightKg * hours);
 
-            recordBurnedCalorie(parent, place, activityName + "(" + minutes + "分, " + speedKmh + "km/h)", burnedCalorie);
+            recordBurnedCalorie(parent, place, activityName + "(" + minutes + "分, " + speedKmh + "km/h)",
+                    burnedCalorie);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(parent, "時間・速度は数値で入力してください。");
@@ -573,7 +674,8 @@ public class MapClient {
         int result = JOptionPane.showConfirmDialog(parent, inputPanel,
                 activityName + " の記録", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (result != JOptionPane.OK_OPTION) return;
+        if (result != JOptionPane.OK_OPTION)
+            return;
 
         try {
             double weightLifted = Double.parseDouble(weightField.getText().trim());
@@ -595,12 +697,14 @@ public class MapClient {
     private static void openStretchDialog(Component parent, PlacesFetcher.Place place, String activityName) {
 
         String input = JOptionPane.showInputDialog(parent, activityName + " の時間(分)を入力してください");
-        if (input == null || input.isBlank()) return;
+        if (input == null || input.isBlank())
+            return;
 
         try {
             double minutes = Double.parseDouble(input.trim());
             double weightKg = getOrAskUserWeight(parent);
-            if (weightKg <= 0) return;
+            if (weightKg <= 0)
+                return;
 
             double met = 2.5; // ヨガ・ストレッチの一般的なMET値
             double hours = minutes / 60.0;
@@ -616,7 +720,8 @@ public class MapClient {
     // 自由入力: 内容と消費カロリーを手入力
     private static void openFreeGymDialog(Component parent, PlacesFetcher.Place place) {
         String input = JOptionPane.showInputDialog(parent, "トレーニング内容と消費カロリー(kcal)を入力してください\n例: 縄跳び 200");
-        if (input == null || input.isBlank()) return;
+        if (input == null || input.isBlank())
+            return;
 
         try {
             String[] parts = input.trim().split("\\s+");
@@ -631,9 +736,12 @@ public class MapClient {
     }
 
     // 消費カロリーの記録を共通化(累計への加算と表示更新)
-    private static void recordBurnedCalorie(Component parent, PlacesFetcher.Place place, String detail, int burnedCalorie) {
+    private static void recordBurnedCalorie(Component parent, PlacesFetcher.Place place, String detail,
+            int burnedCalorie) {
         totalCalorieBurn += burnedCalorie;
         updateCalorieLabel();
+
+        totalBurnCalorie += burnedCalorie;
 
         JOptionPane.showMessageDialog(parent,
                 place.name + " で「" + detail + "」を記録しました。(推定消費: " + burnedCalorie + " kcal)");
@@ -644,10 +752,12 @@ public class MapClient {
     // 体重が未設定なら入力を求め、以後はキャッシュして使い回す
     // (RegisterClientから渡されていれば、ここで聞かれることはない)
     private static double getOrAskUserWeight(Component parent) {
-        if (userWeightKg > 0) return userWeightKg;
+        if (userWeightKg > 0)
+            return userWeightKg;
 
         String input = JOptionPane.showInputDialog(parent, "カロリー計算のため、体重(kg)を入力してください");
-        if (input == null || input.isBlank()) return -1;
+        if (input == null || input.isBlank())
+            return -1;
 
         try {
             userWeightKg = Double.parseDouble(input.trim());
@@ -687,4 +797,24 @@ public class MapClient {
         mapViewer.repaint();
     }
 
+    private static double calculateBMR() {
+
+        System.out.println("=== calculateBMR ===");
+        System.out.println("height = " + height);
+        System.out.println("weight = " + weight);
+
+        double bmr = 66.47
+                + 13.75 * weight
+                + 5.0 * height
+                - 6.76 * 20;
+
+        System.out.println("height = " + height);
+        System.out.println("weight = " + weight);
+        System.out.println("BMR = " + bmr);
+
+        return bmr;
+    }
+
 }
+
+// height
