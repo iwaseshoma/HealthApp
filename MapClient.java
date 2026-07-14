@@ -492,19 +492,6 @@ public class MapClient {
                             Math.abs(fatChange));
                 }
 
-                // JTextArea area = new JTextArea(result);
-                // area.setFont(new Font("メイリオ", Font.PLAIN, 20));
-                // area.setEditable(false);
-
-                // JScrollPane scroll = new JScrollPane(area);
-                // scroll.setPreferredSize(new Dimension(700, 500));
-
-                // JOptionPane.showMessageDialog(
-                //         panel,
-                //         scroll,
-                //         "1週間の結果",
-                //         JOptionPane.INFORMATION_MESSAGE);
-
                 JTextArea textArea = new JTextArea(result);
                 textArea.setEditable(false);
                 textArea.setFont(new Font("メイリオ", Font.BOLD, 24));
