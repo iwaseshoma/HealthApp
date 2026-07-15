@@ -4,13 +4,13 @@ import java.util.ArrayList;
 
 public class CountryJudge {
 
-    public static String judge(int[] weekCalories) {
+    public static String judge(double[] weekCalories) {
 
 
         // 1週間の合計
-        int total = 0;
+        double total = 0;
 
-        for (int calorie : weekCalories) {
+        for (double calorie : weekCalories) {
             total += calorie;
         }
 
