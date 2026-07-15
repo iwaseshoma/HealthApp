@@ -368,7 +368,10 @@ public class MapClient {
         instructionLabel.setFont(new Font("メイリオ", Font.PLAIN, 14));
         panel.add(instructionLabel, BorderLayout.NORTH);
 
-        List<MenuDatabase.MenuItem> menuItems = MenuDatabase.getRestaurantMenu();
+        // 店名(チェーン名)に応じたメニューを取得する
+        // (例: 「サイゼリヤ」が店名に含まれる場合のみサイゼリヤメニューを表示し、
+        //  それ以外の店では汎用メニュー(自由入力)を表示する)
+        List<MenuDatabase.MenuItem> menuItems = MenuDatabase.getRestaurantMenu(place.name);
         DefaultListModel<MenuDatabase.MenuItem> model = new DefaultListModel<>();
         for (MenuDatabase.MenuItem item : menuItems) {
             model.addElement(item);
@@ -803,5 +806,3 @@ public class MapClient {
     }
 
 }
-
-// height

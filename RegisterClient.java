@@ -229,12 +229,10 @@ public class RegisterClient {
                         }
 
                         try {
-                                // TCP接続
-<<<<<<< HEAD
-                                Socket socket = new Socket("192.168.0.202", 5000);
-=======
-                                Socket socket = new Socket("192.168.0.202", 5000);
->>>>>>> 8c05cb4f83f79ea51878c324336955a5258ea3bb
+                                // TCP接続P
+
+                                Socket socket = new Socket("192.168.1.11", 5000);
+
 
                                 PrintWriter writer = new PrintWriter(
                                                 socket.getOutputStream(),
